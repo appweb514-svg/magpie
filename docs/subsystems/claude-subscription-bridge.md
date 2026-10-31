@@ -101,10 +101,10 @@ talks to it as it talks to `-p`: stream-json in and out. The helper:
   `-p`, the stream-json formats, `--verbose`,
   `--include-partial-messages`, `--thinking-display`,
   `--dangerously-skip-permissions` and `--no-session-persistence` go;
-  `--permission-mode default --allowedTools mcp__magpie[,WebSearch]
-  --no-chrome` come. Permissions are not skipped: only magpie's MCP tools
-  (and the web search `-p` was given) are allowed, and nothing else is
-  offered (`--tools ""`). A new session is given `--session-id`;
+  `--permission-mode default --allowedTools mcp__magpie,ToolSearch[,WebSearch]
+  --no-chrome` come. Permissions are not skipped: only magpie's MCP tools,
+  ToolSearch (and the web search `-p` was given) are allowed, and no other
+  built-in tool is offered (`--tools ToolSearch`). A new session is given `--session-id`;
 - starts Claude Code in a pseudo-terminal of its own (200x50), no tmux,
   and answers what it asks of the terminal. On macOS and Linux it is a
   pty in a session of its own (`child_unix.go`). On Windows it is a
@@ -401,9 +401,28 @@ Claude Code 2.1.301:
 
 The saving is a fixed ~0.9–1.2K tokens a request. It is large for light
 clients and small for clients with Claude Code-sized prompts. Without any
-tool, Claude Code's built-in tools are already off (`--tools ""`). A run
+tool, Claude Code's built-in tools are already off but ToolSearch
+(`--tools ToolSearch`). A run
 told the whole conversation again costs far more, because it writes the
 history to the 1h cache at 2×.
+
+## The client's tools are deferred
+
+The client's tools reach Claude Code as magpie's MCP tools, and Claude Code
+defers MCP tools (sends them as `defer_loading`, found on demand by its
+ToolSearch tool) only when ToolSearch is among its own tools. With
+`--tools ""` it could defer none: every schema went in every request. A
+Claude Desktop client with large MCP servers offered 430 tools, about
+446K input tokens a request where the client alone, on Anthropic, sends a
+few thousand. The run's own tools are therefore always `ToolSearch`
+(`ToolSearch,WebSearch` with a web search, `claudeCLIArgs`); a ToolSearch
+call is Claude Code's own to answer, as its WebSearch is (`toolStart`), so
+the client never sees it. Measured on a real Max account through the
+gateway, the same 430 tools and a one-word reply: 446,332 input tokens
+before, 15,297 after; a deferred tool (Bash) is still called and handed
+to the client. Whether Claude Code defers at all is its own call
+(`ENABLE_TOOL_SEARCH`, inherited from magpie's environment).
+`TestClaudeOwnWebSearchStaysInside`.
 
 ## Runtime path for a new turn
 

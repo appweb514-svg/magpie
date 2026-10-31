@@ -275,7 +275,7 @@ func TestClaudeOwnWebSearchStaysInside(t *testing.T) {
 	}
 	on := strings.Join(claudeCLIArgs("m", `{}`, "", true), "\x00")
 	off := strings.Join(claudeCLIArgs("m", `{}`, "", false), "\x00")
-	if !strings.Contains(on, "--tools\x00WebSearch\x00") || !strings.Contains(off, "--tools\x00\x00") {
+	if !strings.Contains(on, "--tools\x00ToolSearch,WebSearch\x00") || !strings.Contains(off, "--tools\x00ToolSearch\x00") {
 		t.Fatalf("tools: %q / %q", on, off)
 	}
 

@@ -2300,13 +2300,17 @@ func messageWords(msgs []Message) []string {
 	return out
 }
 
-// claudeCLIArgs runs Claude Code with none of its own tools but, when the
-// client offered a web search (Claude Code's own WebSearch tool asks for
-// Anthropic's), its WebSearch, which searches as the subscription does.
+// claudeCLIArgs runs Claude Code with none of its own tools but ToolSearch
+// and, when the client offered a web search (Claude Code's own WebSearch
+// tool asks for Anthropic's), its WebSearch, which searches as the
+// subscription does. Without ToolSearch Claude Code can defer none of the
+// client's tools: every schema went in every request, hundreds of thousands
+// of tokens for a client with large MCP servers, where the client itself,
+// on Anthropic, would have sent a few.
 func claudeCLIArgs(model, mcpConfig, effort string, web bool) []string {
-	own := ""
+	own := "ToolSearch"
 	if web {
-		own = "WebSearch"
+		own = "ToolSearch,WebSearch"
 	}
 	args := []string{
 		"-p", "--output-format", "stream-json", "--input-format", "stream-json",
